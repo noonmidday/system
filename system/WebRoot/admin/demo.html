@@ -1,0 +1,465 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>携宇产品管理系统</title>
+<link rel="stylesheet" href="resources/css/reset.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/css/style.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/css/invalid.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/wbox/image/wbox.css" type="text/css"/>
+<script type="text/javascript" src="resources/scripts/jquery.min.js"></script>
+<script type="text/javascript" src="resources/scripts/simpla.jquery.configuration.js"></script>
+<script type="text/javascript" src="resources/scripts/facebox.js"></script>
+<script type="text/javascript" src="resources/scripts/jquery.wysiwyg.js"></script>
+<script charset="utf-8" src="resources/editor/kindeditor.js"></script>
+<script charset="utf-8" src="resources/editor/lang/zh_CN.js"></script>
+<script type="text/javascript" src="resources/wbox/wbox.js"></script>
+<script>
+$(function(){
+	/*
+		左侧点击变色效果
+	*/
+	$('#menu_mail').addClass("current").click();
+	$('#menu_inbox').addClass("current");
+	
+	$("#main-nav ul a").click(function(){
+		$("#main-nav ul a").removeClass();
+		$(this).attr("CLASS","current");
+	});
+	
+	$(".nav-top-item").click(function(){
+		$("#main-nav ul li a").removeClass();
+		$(".nav-top-item").removeClass("current");
+		$(this).addClass("current");
+	});
+	
+	$.post('inbox_do.php',{act:'Set_Message_Shutdown',username:'yuliang'});  //收件箱初始化页面，关闭消息弹窗
+	
+	$("#dscontent").load("inbox_load.php",function(){
+		chooseboxload();
+	});
+	
+})
+
+function chooseboxload(){  //Load列表的同时加载全选反选下拉框功能
+	$("#selbox").change(function(){
+			if($(this).val()=='selAll'){
+					selAll();	
+			}else if($(this).val()=='canAll'){
+					canAll();
+			}			
+		});
+}
+
+function selAll(){//全选
+			$(".check_one").each(function(){
+					$(this).attr("checked",true);
+			});
+}
+
+function canAll(){//取消全选
+			$(".check_one").each(function(){
+					$(this).attr("checked",false);
+			});
+}
+
+function turnpage(num){   //翻页
+	$('#dscontent').load("inbox_load.php",{page:num},function(){
+		chooseboxload();
+	});
+}
+
+function del_recycle(id){
+
+	if(confirm('确定删除么？')){
+		$.post('inbox_do.php',{act:'del_recycle',del_id:id},function(data){
+			
+			if(!isNaN(data)){		
+				count=$('#pagecount').val()-data;
+				rows=$('#pagerows').val();
+				whichpage=Math.ceil(count/rows);
+				nowpage=$('#nowpage').val();
+				if(nowpage<whichpage){
+					whichpage=nowpage;
+				}
+				$("#success_info div").html('删除成功！');
+				$("#success_info").show(30).delay(2000).hide(100,function(){
+						$('#dscontent').load("inbox_load.php",{page:whichpage},function(){
+							chooseboxload();
+					});	
+				});
+							
+			}else{
+				$("#error_info div").html('删除失败！');
+				$("#error_info").show(30).delay(2000).hide(100);
+				return false;
+			}
+		})
+	}
+	
+}
+
+function dels_recycle(){ 
+
+	var dels_id='';
+	$(".check_one").each(function(){
+		if($(this).attr("checked")){
+			dels_id+=$(this).val()+',';
+		}
+	});
+	
+	if(dels_id==''){
+		$("#attention_info div").html('请选择要移动的信件');
+		$("#attention_info").show(100).delay(3000).hide(500);
+		return false;
+	}
+	
+	if(confirm('确定移动到回收站么？')){
+		$.post('inbox_do.php',{act:'dels_recycle',dels_id:dels_id},function(data){
+			
+			if(!isNaN(data)){		
+				count=$('#pagecount').val()-data;
+				rows=$('#pagerows').val();
+				whichpage=Math.ceil(count/rows);
+				nowpage=$('#nowpage').val();
+				if(nowpage<whichpage){
+					whichpage=nowpage;
+				}
+				$("#success_info div").html('成功移到回收站！');
+				$("#success_info").show(30).delay(2000).hide(100,function(){
+						$('#dscontent').load("inbox_load.php",{page:whichpage},function(){
+							chooseboxload();
+						});	
+				});
+			}else{
+				$("#error_info div").html('移动失败！');
+				$("#error_info").show(30).delay(2000).hide(100);
+				return false;
+			}
+		})
+	}
+
+}
+
+function shift_delete(){
+
+	var dels_id='';
+	$(".check_one").each(function(){
+		if($(this).attr("checked")){
+			dels_id+=$(this).val()+',';
+		}
+	});
+	
+	if(dels_id==''){
+		$("#attention_info div").html('请至少选择一个要删除的信件');
+		$("#attention_info").show(100).delay(3000).hide(500);
+		return false;
+	}
+	
+	if(confirm('确定彻底删除么？')){
+		$.post('inbox_do.php',{act:'shift_delete',dels_id:dels_id},function(data){
+			
+			if(!isNaN(data)){		
+				count=$('#pagecount').val()-data;
+				rows=$('#pagerows').val();
+				whichpage=Math.ceil(count/rows);
+				nowpage=$('#nowpage').val();
+				if(nowpage<whichpage){
+					whichpage=nowpage;
+				}
+				$("#success_info div").html('删除成功！');
+				$("#success_info").show(30).delay(2000).hide(100,function(){
+						$('#dscontent').load("inbox_load.php",{page:whichpage},function(){
+							chooseboxload();
+						});	
+				});
+			}else{
+				$("#error_info div").html('删除失败！');
+				$("#error_info").show(30).delay(2000).hide(100);
+				return false;
+			}
+		})
+	}
+
+}
+
+function msg_alert(id){  //弹出站内信息提示窗口
+		var msg_callback=function(){
+			$.post('inbox_do.php',{act:'set_is_open',open_id:id},function(data){
+				if(data==1){		
+					var nowpage=$('#nowpage').val();
+					$('#dscontent').load("inbox_load.php",{page:nowpage},function(){
+						chooseboxload();
+					});
+				}else{
+					$("#attention_info div").html('打开出错!');
+					$("#attention_info").show(30).delay(2000).hide(100);
+					return false;
+				}
+			})
+		}
+	
+		$(".msg_alert_box"+id+"").wBox({opacity:0,title: "Message（提示：按Esc键或者双击窗口外面也可退出）",requestType: "ajax",target:"inbox_msg_alert_box.php?id="+id+"",wBoxURL:"../resources/wbox/image/",callBack:msg_callback});
+}
+
+function send_message(id){  //发送站内信界面
+		$('.wBox_close').click(); //触发信息窗口关闭
+		$('#dscontent').load("send_message.php",{reply_id:id},function(){
+				$('#usersel').val($('#hideuser').val());
+				$.getScript('../resources/editor/kindeditor.js',function(){
+					//KindEditor.basePath = '../'; //默认值: 根据kindeditor.js文件名自动获取
+					KindEditor.create('#reply_inside_mail',{
+							themeType : 'simple',
+							width : '630px',
+							height: '370px',
+							resizeType : 1,
+							allowPreviewEmoticons : false,
+							allowImageUpload : false,
+							items : [
+							'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline',
+							'removeformat', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
+							'insertunorderedlist', '|', 'emoticons', 'image', 'link'],
+							afterBlur: function(){this.sync();}
+					});
+				});
+				
+		});	
+}
+
+function returnlist(){  //返回收件箱列表
+	$('#dscontent').load("inbox_load.php",function(){
+		chooseboxload();
+	});
+}
+</script>
+</head>
+<body>
+<div id="body-wrapper">
+  <!-- Wrapper for the radial gradient background -->
+    <div id="sidebar">
+    <div id="sidebar-wrapper">
+      <!-- Sidebar with logo and menu -->
+      <h1 id="sidebar-title"><a href="#"></a></h1>
+      <!-- Logo (221px wide) -->
+      <a href="#"><img id="logo" src="../resources/images/logo.png" alt="携宇" /></a>
+      <!-- Sidebar Profile links -->
+      <div id="profile-links"> Hello,<a href="#" title="Edit your profile">yuliang</a>
+		<br/>
+        <br />
+			<a href="javascript:;" onclick="logout();" title="退出">退出</a>
+	  <script>
+		function logout(){
+				if(confirm('确定退出么？')){
+					$.post('../../loginout_do.php',function(){
+						window.location.href='../../index.php';
+					});
+				}
+		}
+	  </script>
+	  
+	  </div>
+      <ul id="main-nav">
+        <!-- Accordion Menu -->
+        <li> <a href="javascript:;" class="nav-top-item no-submenu" id="menu1">
+          <!-- Add the class "no-submenu" to menu items with no sub menu -->
+          产品信息 </a>
+		   <ul>
+            <li><a href="index.php" id="menu2">产品列表</a></li>
+			 <li><a href="virtualsku.php" id="vir_sku">虚拟SKU</a></li>
+          </ul>	
+		 </li>
+		 <li> <a href="javascript:;" class="nav-top-item no-submenu" id="menu17">
+          <!-- Add the class "no-submenu" to menu items with no sub menu -->
+          成本核算</a>
+		   <ul>
+			 <li><a href="costaccounting.php" id="menu10">Ebay成本核算</a></li>
+			 <li><a href="ebay_inland.php" id="ebay_inland">Ebay国内发货订单核算</a></li>
+			 <li><a href="amazoncal.php" id="amazon">Amazon成本核算</a></li>
+			 <li><a href="amazon_fba.php" id="amazon_fba">亚马逊·FBA成本核算</a></li>
+			 <li><a href="yujingprice.php" id="yujingprice">预警价格调整</a></li>
+			 <li><a href="returnrate.php" id="returnrate">SKU利润率</a></li>
+			 <li><a href="sell_SkuAnalysis.php" id="sell_SkuAnalysis">产品销售渠道分析</a></li>
+			 <li><a href="allanalysis.php" id="allanalysis">汇总分析</a></li>
+			 <li><a href="transchecked.php" id="transchecked">运费核准</a></li>
+          </ul>	
+		 </li>
+		 <li> <a href="javascript:;" class="nav-top-item" id="menu13">退款与重发货</a>
+          <ul>
+			 <li><a href="addpayapi.php" id="menu16">添加Paypal_API</a></li>
+            <li><a href="refund.php" id="menu14">退款操作</a></li>
+            <li><a href="reapply.php" id="menu15">重发货申请单</a></li>
+          </ul>
+        </li>
+			<li><a href="javascript:;" class="nav-top-item" id="menu_caigou">采购管理</a>
+			  <ul>
+				<li><a href="supplier.php" id="menu_supplier">供应商管理</a></li>
+				<li><a href="cai_prodevelop.php" id="menu_prodevelop">产品开发管理</a></li>
+				<li><a href="procure_manage.php" id="menu_procure">采购单管理</a></li>
+				<li><a href="system_stockup.php" id="menu_stockup">系统自动备货单</a></li>
+				<li><a href="deliver_manage.php" id="menu_deliver_list">发货单管理</a></li>
+				<li><a href="check_singleweigh.php" id="menu_singleweigh">SKU审核重量</a></li>
+				<li><a href="oms_stock.php" id="menu_oms_stock">OMS国内仓库分析</a></li>
+				<li><a href="stockanalysis.php" id="menu_stock">库存分析</a></li>
+				<li><a href="special_handling.php" id="menu_sp_hand">发货SKU特殊处理</a></li>
+			  </ul>
+			</li> 
+			<li><a href="javascript:;" class="nav-top-item" id="menu_ios">IOS专题</a>
+				<ul>
+					<li><a href="addiosdeveloper.php" id="menu_developer">添加IOS开发者账号</a></li>
+					<li><a href="addpaypal.php" id="menu_addpaypal">添加paypal账号</a></li>
+					<li><a href="transudid.php" id="menu_transudid">UDID详情列表</a></li>
+				</ul>
+			</li>
+			<li><a href="javascript:;" class="nav-top-item" id="menu6">我的设置</a>
+				<ul>
+				<li><a href="myinfo.php" id="menu7">个人资料</a></li>
+				<li><a href="changepwd.php" id="menu8">修改密码</a></li>
+				</ul>
+			</li>
+			<li><a href="javascript:;" class="nav-top-item" id="menu_mail">站内消息</a>
+			  <ul>
+			   <li><a href="inbox.php" id="menu_inbox">我的收件箱</a></li>
+				<li><a href="outbox.php" id="menu_outbox">已发送</a></li>
+				<li><a href="recycle_bin.php" id="menu_recycle_bin">回收站</a></li>
+			  </ul>
+			</li>
+      </ul>
+      <!-- End #main-nav -->
+      <div id="messages" style="display: none">
+        <!-- Messages are shown when a link with these attributes are clicked: href="#messages" rel="modal"  -->
+        <h3>3 Messages</h3>
+        <p> <strong>17th May 2009</strong> by Admin<br />
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna. Cras in mi at felis aliquet congue. <small><a href="#" class="remove-link" title="Remove message">Remove</a></small> </p>
+        <p> <strong>2nd May 2009</strong> by Jane Doe<br />
+          Ut a est eget ligula molestie gravida. Curabitur massa. Donec eleifend, libero at sagittis mollis, tellus est malesuada tellus, at luctus turpis elit sit amet quam. Vivamus pretium ornare est. <small><a href="#" class="remove-link" title="Remove message">Remove</a></small> </p>
+        <p> <strong>25th April 2009</strong> by Admin<br />
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna. Cras in mi at felis aliquet congue. <small><a href="#" class="remove-link" title="Remove message">Remove</a></small> </p>
+        <form action="#" method="post">
+          <h4>New Message</h4>
+          <fieldset>
+          <textarea class="textarea" name="textfield" cols="79" rows="5"></textarea>
+          </fieldset>
+          <fieldset>
+          <select name="dropdown" class="small-input">
+            <option value="option1">Send to...</option>
+            <option value="option2">Everyone</option>
+            <option value="option3">Admin</option>
+            <option value="option4">Jane Doe</option>
+          </select>
+          <input class="button" type="submit" value="Send" />
+          </fieldset>
+        </form>
+      </div>
+      <!-- End #messages -->
+    </div>
+  </div>
+  <!-- End #sidebar -->  <div id="main-content">
+    <!-- Main Content Section with everything -->
+
+    <p id="page-intro"></p>
+    <ul class="shortcut-buttons-set">
+      <li>
+		<a class="shortcut-button" href="javascript:;" onclick="send_message(0);"><span  style="height: 98px;"><img src="../resources/images/icons/paper_content_pencil_48.png" alt="icon" /><br />
+        发送消息 </span>
+		</a>
+	  </li>
+    </ul>
+    <div class="clear"></div>
+    <p>
+		PS:系统消息不能回复~
+	</p>
+	<input type="hidden" value="1" id="inbox_close_alert"><!--禁止重复弹出消息隐藏域设置-->
+	<span id="dscontent"></span>
+	
+	<script src="../resources/jquery_messager/jquery.messager.js"></script>
+<SCRIPT>
+function Set_PageTitle(){ //设置页面Title
+	var ListName={  //找不到相关标签页时使用的备用名称
+		procure_edit : '采购单详情',
+		cai_prodevelop_edit : '产品开发编辑',
+		procure_add : '添加采购单',
+		deliver_add : '待发货SKU列表',
+		deliver_edit : '发货单详情',
+		addformload : '创建新产品信息',
+		editform : '产品信息编辑',
+		cai_prodevelop_add : '开发新产品'
+	};
+	
+	var str1=window.location.pathname;
+	var myfile_str=$.trim(str1.split("/").reverse()[0]);
+	$("#main-nav ul li a").each(function(){
+		if($(this).attr("href")==myfile_str){
+			$("html head title").html($(this).html()+' - 携宇产品管理系统');
+		}else{
+			var temp=myfile_str.replace(".php","");
+			$.each(ListName,function(name,item){
+				if(temp==name){
+					$("html head title").html(item+' - 携宇产品管理系统');
+				}
+			});
+		}
+	});
+	
+}
+
+function goTopEx(){  //返回顶端
+        var obj=document.getElementById("goTopBtn");
+        function getScrollTop(){
+                //return document.documentElement.scrollTop;
+				return document.documentElement.scrollTop+document.body.scrollTop;
+            }
+        function setScrollTop(value){
+                //document.documentElement.scrollTop=value;
+				document.documentElement.scrollTop?document.documentElement.scrollTop=value:document.body.scrollTop=value;
+			}    
+        window.onscroll=function(){getScrollTop()>0?obj.style.display="":obj.style.display="none";}
+        obj.onclick=function(){
+            var goTop=setInterval(scrollMove,10);
+            function scrollMove(){
+                    setScrollTop(getScrollTop()/30);
+                    if(getScrollTop()<1)clearInterval(goTop); 
+                }
+        }
+}
+
+function GetNewMessage(){
+
+		$.post('inbox_do.php',{act:'GetNewMessage',username:'yuliang',alert_mark:$("#inbox_close_alert").val()},function(data){
+			if(data>0){		
+				//$.messager.anim('fade', 2000);
+				$.messager.lays(280,170);
+				$.messager.show('<B>New Message！</B>','您有'+data+'条新消息！进入 <a href="inbox.php">我的收件箱</a>',10000);//需点击关闭
+				// $("#message_close").click(function(){
+					///////////
+				// });
+			}
+		})
+		
+	var msg_event=window.setTimeout("GetNewMessage()",480000); //8分钟执行1次（毫秒单位）
+}
+
+</SCRIPT>
+<STYLE>
+#goTopBtn {
+	POSITION: fixed; TEXT-ALIGN: center; LINE-HEIGHT: 30px; WIDTH: 30px; BOTTOM: 35px; HEIGHT: 33px; FONT-SIZE: 12px; CURSOR: pointer; RIGHT: 0px; _position: absolute; _right: auto
+}
+</STYLE>
+
+<DIV style="DISPLAY: none" id=goTopBtn><IMG border=0 src="resources/images/lanren_top.jpg"></DIV>
+<SCRIPT type=text/javascript>
+goTopEx();
+GetNewMessage();
+Set_PageTitle();
+</SCRIPT>
+
+<div id="footer"> <small>
+      <!-- Remove this notice or replace it with whatever you want -->
+      &#169; Copyright 2013 携宇科技 | Powered by <a href="#">王巍</a></small>
+</div>
+    <!-- End #footer -->
+  </div>
+  <!-- End #main-content -->
+</div>
+</body>
+<!-- Download From www.exet.tk-->
+</html>

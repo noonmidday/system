@@ -1,0 +1,106 @@
+package servlet.product_info;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import weiyi.MySQL;
+
+public class del_product_list extends HttpServlet {
+	MySQL mySQL = new MySQL();
+
+	/**
+	 * Constructor of the object.
+	 */
+	public del_product_list() {
+		super();
+	}
+
+	/**
+	 * Destruction of the servlet. <br>
+	 */
+	public void destroy() {
+		super.destroy(); // Just puts "destroy" string in log
+		// Put your code here
+	}
+
+	/**
+	 * The doGet method of the servlet. <br>
+	 * 
+	 * This method is called when a form has its tag value method equals to get.
+	 * 
+	 * @param request
+	 *            the request send by the client to the server
+	 * @param response
+	 *            the response send by the server to the client
+	 * @throws ServletException
+	 *             if an error occurred
+	 * @throws IOException
+	 *             if an error occurred
+	 */
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		doPost(request, response);
+
+	}
+
+	/**
+	 * The doPost method of the servlet. <br>
+	 * 
+	 * This method is called when a form has its tag value method equals to
+	 * post.
+	 * 
+	 * @param request
+	 *            the request send by the client to the server
+	 * @param response
+	 *            the response send by the server to the client
+	 * @throws ServletException
+	 *             if an error occurred
+	 * @throws IOException
+	 *             if an error occurred
+	 */
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		response.setContentType("text/html;charset=utf-8");
+		PrintWriter out = response.getWriter();
+		String id = request.getParameter("id");
+		if (id != null && !id.equals("")) {
+
+			String sql = "";
+			if (id.indexOf(",") >= 0) {
+				id = id.substring(0, id.length() - 1);
+				System.out.println("id" + id);
+				// "DELETE FROM  `productlist` WHERE `id` in (24,25)"
+				sql = "delete from `productlist` where `id` in (" + id + ")";
+			} else {
+
+				sql = "delete from `productlist` where `id` = " + id;
+			}
+			// System.out.println("sql:"+sql);
+			if (mySQL.MySQL_no_chaxun(sql)) {
+				out.print(1);
+			} else {
+				out.print(0);
+			}
+		}
+
+		out.flush();
+		out.close();
+	}
+
+	/**
+	 * Initialization of the servlet. <br>
+	 * 
+	 * @throws ServletException
+	 *             if an error occurs
+	 */
+	public void init() throws ServletException {
+		// Put your code here
+	}
+
+}
